@@ -151,12 +151,18 @@ describe('GitHistoryMiner', () => {
         // Commit from 2023
         writeFileSync(join(dateRepo, 'test.js'), 'function old() { return 1; }');
         execSync('git add .', { cwd: dateRepo });
-        execSync('GIT_COMMITTER_DATE="2023-01-15T00:00:00" git commit --date="2023-01-15T00:00:00" -m "Old commit"', { cwd: dateRepo });
+        execSync('git commit --date="2023-01-15T00:00:00" -m "Old commit"', { 
+          cwd: dateRepo,
+          env: { ...process.env, GIT_COMMITTER_DATE: '2023-01-15T00:00:00' }
+        });
         
         // Commit from 2024
         writeFileSync(join(dateRepo, 'test.js'), 'function new() { return 2; }');
         execSync('git add .', { cwd: dateRepo });
-        execSync('GIT_COMMITTER_DATE="2024-06-15T00:00:00" git commit --date="2024-06-15T00:00:00" -m "New commit"', { cwd: dateRepo });
+        execSync('git commit --date="2024-06-15T00:00:00" -m "New commit"', { 
+          cwd: dateRepo,
+          env: { ...process.env, GIT_COMMITTER_DATE: '2024-06-15T00:00:00' }
+        });
         
         const dateMiner = new GitHistoryMiner(dateRepo);
         

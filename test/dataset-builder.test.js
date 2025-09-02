@@ -125,8 +125,21 @@ function calculateAverage(numbers) {
     });
 
     test('should balance positive and negative examples', async () => {
+      // Add more commits to ensure we have enough for negative examples
+      for (let i = 0; i < 5; i++) {
+        const content = `function test${i}() { return ${i}; }`;
+        writeFileSync(join(tempRepoDir, `test${i}.js`), content);
+        execSync('git add .', { cwd: tempRepoDir });
+        execSync(`git commit -m "Add test${i}"`, { cwd: tempRepoDir });
+        
+        // Update the file for next commit
+        writeFileSync(join(tempRepoDir, `test${i}.js`), content + '\n// updated');
+        execSync('git add .', { cwd: tempRepoDir });
+        execSync(`git commit -m "Update test${i}"`, { cwd: tempRepoDir });
+      }
+      
       const stats = await builder.buildKTODataset({
-        maxCommits: 10,
+        maxCommits: 20,
         fimFormat: FIMFormat.ZED
       });
 
@@ -269,7 +282,10 @@ function calculateAverage(numbers) {
       }`;
       writeFileSync(join(dateRepoDir, 'code.js'), oldCode);
       execSync('git add .', { cwd: dateRepoDir });
-      execSync('GIT_COMMITTER_DATE="2023-06-15T00:00:00" git commit --date="2023-06-15T00:00:00" -m "Old commit"', { cwd: dateRepoDir });
+      execSync('git commit --date="2023-06-15T00:00:00" -m "Old commit"', { 
+        cwd: dateRepoDir,
+        env: { ...process.env, GIT_COMMITTER_DATE: '2023-06-15T00:00:00' }
+      });
       
       // Recent commit (2024)
       const newCode = `function newFunction() {
@@ -277,7 +293,10 @@ function calculateAverage(numbers) {
       }`;
       writeFileSync(join(dateRepoDir, 'code.js'), newCode);
       execSync('git add .', { cwd: dateRepoDir });
-      execSync('GIT_COMMITTER_DATE="2024-06-15T00:00:00" git commit --date="2024-06-15T00:00:00" -m "Recent commit"', { cwd: dateRepoDir });
+      execSync('git commit --date="2024-06-15T00:00:00" -m "Recent commit"', { 
+        cwd: dateRepoDir,
+        env: { ...process.env, GIT_COMMITTER_DATE: '2024-06-15T00:00:00' }
+      });
       
       dateBuilder = new DatasetBuilder(dateRepoDir, dateOutputDir);
     });
