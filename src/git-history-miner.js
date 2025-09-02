@@ -28,11 +28,15 @@ export class GitHistoryMiner {
       const logOptions = ['--no-merges', '-n', String(maxCommits)];
       
       if (startDate) {
-        logOptions.push(`--since=${startDate.toISOString()}`);
+        // Format date as YYYY-MM-DD for git
+        const dateStr = startDate.toISOString().split('T')[0];
+        logOptions.push(`--since=${dateStr}`);
       }
       
       if (endDate) {
-        logOptions.push(`--until=${endDate.toISOString()}`);
+        // Format date as YYYY-MM-DD for git
+        const dateStr = endDate.toISOString().split('T')[0];
+        logOptions.push(`--until=${dateStr}`);
       }
       
       const log = await this.git.log(logOptions);

@@ -148,6 +148,11 @@ describe('GitHistoryMiner', () => {
         execSync('git config user.email "test@example.com"', { cwd: dateRepo });
         execSync('git config user.name "Test User"', { cwd: dateRepo });
         
+        // Initial commit (base for diffs)
+        writeFileSync(join(dateRepo, 'test.js'), 'function initial() { return 0; }');
+        execSync('git add .', { cwd: dateRepo });
+        execSync('git commit -m "Initial commit"', { cwd: dateRepo });
+        
         // Commit from 2023
         writeFileSync(join(dateRepo, 'test.js'), 'function old() { return 1; }');
         execSync('git add .', { cwd: dateRepo });
@@ -182,7 +187,7 @@ describe('GitHistoryMiner', () => {
         assert.equal(oldPairs.length, 1);
         assert(oldPairs[0].commitMessage.includes('Old commit'));
         
-        // Test with no date filters - should get both
+        // Test with no date filters - should get both edits (not the initial commit)
         const allPairs = await dateMiner.extractEditPairs(['.js'], 100);
         assert.equal(allPairs.length, 2);
       } finally {
