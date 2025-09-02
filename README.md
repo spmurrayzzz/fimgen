@@ -18,6 +18,7 @@ This tool is mostly just me compiling all the random scripts scattered around my
 - **AST-Based Processing**: Intelligent cursor positioning using Abstract Syntax Trees
 - **Language Support**: Python, JavaScript, TypeScript, Java, C/C++, Go, Rust, and more
 - **Negative Example Generation**: Synthetic degradation methods for contrastive learning
+- **Date Range Filtering**: Filter commits by date range for temporal dataset control
 
 ## Quick Start
 
@@ -81,6 +82,9 @@ bun run src/index.js /path/to/repo --dataset-type dpo --extensions .py
 # Generate both datasets with custom settings
 bun run src/index.js /path/to/repo --dataset-type both --max-commits 500
 
+# Filter commits by date range
+bun run src/index.js /path/to/repo --start-date 2024-01-01 --end-date 2024-06-30
+
 # Or use the start script
 bun start /path/to/repo --format ZED --dataset-type kto
 ```
@@ -94,6 +98,8 @@ bun start /path/to/repo --format ZED --dataset-type kto
 - `--dataset-type <type>` - Dataset type: kto, dpo, both (default: kto)
 - `--split <ratio>` - Train/test split ratio (default: 0.9)
 - `--extensions <ext>...` - File extensions to process
+- `--start-date <date>` - Filter commits from this date (YYYY-MM-DD format)
+- `--end-date <date>` - Filter commits until this date (YYYY-MM-DD format)
 - `-h, --help` - Show help
 
 ### Programmatic API
@@ -109,7 +115,9 @@ const stats = await builder.buildKTODataset({
   maxCommits: 1000,
   fimFormat: FIMFormat.ZED,
   trainTestSplit: 0.9,
-  fileExtensions: ['.js', '.py']
+  fileExtensions: ['.js', '.py'],
+  startDate: new Date('2024-01-01'),
+  endDate: new Date('2024-12-31')
 });
 
 console.log(stats);
