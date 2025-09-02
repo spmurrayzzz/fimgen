@@ -170,3 +170,15 @@ The tool generates JSONL files with the following structure:
 ## License
 
 MIT
+
+## TODO
+
+[] Add more languages and file types
+[] Eval AST-based cursor positioning, not sure this actually works well as written
+[] Enhance quality filtering heuristics via embeddings or LLM-as-a-judge
+[] Optimize performance for large repositories, its not super fast right now
+[] Implement more synthetic degradation methods for negative examples, this likely will be LLM driven
+[] Add configuration file support for default options
+[] Improve documentation and examples
+[] Improve use as a library with better API design
+[] Add CI/CD for tests and linting
