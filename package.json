@@ -1,6 +1,6 @@
 {
   "name": "fimgen",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Generate FIM (Fill-in-the-Middle) training datasets from git repositories",
   "type": "module",
   "main": "src/index.js",
