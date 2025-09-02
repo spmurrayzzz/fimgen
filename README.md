@@ -192,3 +192,4 @@ MIT
 - [ ] Improve documentation and examples
 - [ ] Improve use as a library with better API design
 - [ ] Add CI/CD for tests and linting
+- [ ] Improve dataset viewer, maybe a web UI? (god I hope not)
