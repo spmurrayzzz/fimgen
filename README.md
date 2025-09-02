@@ -27,10 +27,6 @@ The idea is simple:
 ```bash
 # Install Bun if you haven't already
 curl -fsSL https://bun.sh/install | bash
-
-# Clone and setup
-git clone <your-repo>
-cd fimgen
 bun install
 
 # Generate a dataset
