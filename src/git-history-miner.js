@@ -15,7 +15,7 @@ export class GitHistoryMiner {
     this.qualityFilter = new QualityFilter();
   }
 
-  async extractEditPairs(fileExtensions = null, maxCommits = 1000) {
+  async extractEditPairs(fileExtensions = null, maxCommits = 1000, startDate = null, endDate = null) {
     if (!fileExtensions) {
       fileExtensions = ['.py', '.js', '.jsx', '.ts', '.tsx', '.java', '.cpp', '.c', '.go', '.rs'];
     }
@@ -25,7 +25,17 @@ export class GitHistoryMiner {
     try {
       // console.log(`Mining repository: ${this.repoPath}`);
       
-      const log = await this.git.log(['--no-merges', '-n', String(maxCommits)]);
+      const logOptions = ['--no-merges', '-n', String(maxCommits)];
+      
+      if (startDate) {
+        logOptions.push(`--since=${startDate.toISOString()}`);
+      }
+      
+      if (endDate) {
+        logOptions.push(`--until=${endDate.toISOString()}`);
+      }
+      
+      const log = await this.git.log(logOptions);
       const commits = log.all;
 
       for (const commit of commits) {

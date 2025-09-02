@@ -43,12 +43,48 @@ const options = {
     multiple: true,
     description: 'File extensions to process'
   },
+  'start-date': {
+    type: 'string',
+    description: 'Start date for commit range (ISO format: YYYY-MM-DD)'
+  },
+  'end-date': {
+    type: 'string',
+    description: 'End date for commit range (ISO format: YYYY-MM-DD)'
+  },
   'help': {
     type: 'boolean',
     short: 'h',
     description: 'Show help'
   }
 };
+
+function parseDateRange(startDateStr, endDateStr) {
+  let startDate = null;
+  let endDate = null;
+
+  if (startDateStr) {
+    startDate = new Date(startDateStr);
+    if (isNaN(startDate.getTime())) {
+      console.error('Error: Invalid start-date format. Use YYYY-MM-DD');
+      process.exit(1);
+    }
+  }
+
+  if (endDateStr) {
+    endDate = new Date(endDateStr);
+    if (isNaN(endDate.getTime())) {
+      console.error('Error: Invalid end-date format. Use YYYY-MM-DD');
+      process.exit(1);
+    }
+  }
+
+  if (startDate && endDate && startDate > endDate) {
+    console.error('Error: start-date must be before end-date');
+    process.exit(1);
+  }
+
+  return { startDate, endDate };
+}
 
 function showHelp() {
   console.log(`
@@ -65,6 +101,8 @@ Options:
   --dataset-type <type>       Dataset type: kto, dpo, both (default: kto)
   --split <ratio>             Train/test split ratio (default: 0.9)
   --extensions <ext>...       File extensions to process
+  --start-date <date>         Start date for commits (YYYY-MM-DD)
+  --end-date <date>           End date for commits (YYYY-MM-DD)
   -h, --help                  Show this help
 
 Examples:
@@ -76,6 +114,9 @@ Examples:
 
   # Generate both datasets with custom settings
   fim-dataset-generator /path/to/repo --dataset-type both --max-commits 500
+
+  # Generate dataset for specific date range
+  fim-dataset-generator /path/to/repo --start-date 2024-01-01 --end-date 2024-06-30
 `);
 }
 
@@ -130,6 +171,8 @@ async function main() {
     process.exit(1);
   }
 
+  const { startDate, endDate } = parseDateRange(values['start-date'], values['end-date']);
+
   console.log(`Starting dataset generation from ${resolvedPath}`);
   console.log(`Output directory: ${values.output}`);
   console.log(`Format: ${values.format}`);
@@ -144,7 +187,9 @@ async function main() {
         maxCommits,
         fimFormat: format,
         trainTestSplit: split,
-        fileExtensions: values.extensions
+        fileExtensions: values.extensions,
+        startDate,
+        endDate
       });
 
       if (!stats.error) {
@@ -161,7 +206,9 @@ async function main() {
         maxCommits,
         fimFormat: format,
         trainTestSplit: split,
-        fileExtensions: values.extensions
+        fileExtensions: values.extensions,
+        startDate,
+        endDate
       });
 
       if (!stats.error) {

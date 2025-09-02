@@ -45,14 +45,15 @@ export class DatasetBuilder {
     maxCommits = 1000,
     fimFormat = FIMFormat.ZED,
     trainTestSplit = 0.9,
-    fileExtensions = null
+    fileExtensions = null,
+    startDate = null,
+    endDate = null
   }) {
-    this.logger.info(`Building KTO dataset from ${this.repoPath}`);
-    this.logger.info(`Format: ${fimFormat}, Max commits: ${maxCommits}`);
+    this._logBuildInfo('KTO', fimFormat, maxCommits, startDate, endDate);
 
     try {
       this.logger.info('Extracting edit pairs from git history...');
-      const editPairs = await this.gitMiner.extractEditPairs(fileExtensions, maxCommits);
+      const editPairs = await this.gitMiner.extractEditPairs(fileExtensions, maxCommits, startDate, endDate);
 
       if (!editPairs.length) {
         this.logger.warn('No edit pairs extracted from repository');
@@ -130,12 +131,14 @@ export class DatasetBuilder {
     maxCommits = 1000,
     fimFormat = FIMFormat.ZED,
     trainTestSplit = 0.9,
-    fileExtensions = null
+    fileExtensions = null,
+    startDate = null,
+    endDate = null
   }) {
-    this.logger.info(`Building DPO dataset from ${this.repoPath}`);
+    this._logBuildInfo('DPO', fimFormat, maxCommits, startDate, endDate);
 
     try {
-      const editPairs = await this.gitMiner.extractEditPairs(fileExtensions, maxCommits);
+      const editPairs = await this.gitMiner.extractEditPairs(fileExtensions, maxCommits, startDate, endDate);
 
       if (!editPairs.length) {
         return { error: 'No valid edit pairs found' };
@@ -192,6 +195,17 @@ export class DatasetBuilder {
     } catch (error) {
       this.logger.error(`DPO dataset generation failed: ${error.message}`);
       return { error: error.message };
+    }
+  }
+
+  _logBuildInfo(datasetType, fimFormat, maxCommits, startDate, endDate) {
+    this.logger.info(`Building ${datasetType} dataset from ${this.repoPath}`);
+    this.logger.info(`Format: ${fimFormat}, Max commits: ${maxCommits}`);
+    if (startDate) {
+      this.logger.info(`Start date: ${startDate.toISOString()}`);
+    }
+    if (endDate) {
+      this.logger.info(`End date: ${endDate.toISOString()}`);
     }
   }
 

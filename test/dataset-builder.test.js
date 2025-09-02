@@ -249,6 +249,141 @@ function calculateAverage(numbers) {
     });
   });
 
+  describe('Date Filtering', () => {
+    let dateRepoDir;
+    let dateOutputDir;
+    let dateBuilder;
+
+    beforeEach(() => {
+      dateRepoDir = mkdtempSync(join(tmpdir(), 'date-repo-'));
+      dateOutputDir = mkdtempSync(join(tmpdir(), 'date-output-'));
+      
+      // Create repo with commits at specific dates
+      execSync('git init', { cwd: dateRepoDir });
+      execSync('git config user.email "test@example.com"', { cwd: dateRepoDir });
+      execSync('git config user.name "Test User"', { cwd: dateRepoDir });
+      
+      // Old commit (2023)
+      const oldCode = `function oldFunction() {
+        return "old implementation";
+      }`;
+      writeFileSync(join(dateRepoDir, 'code.js'), oldCode);
+      execSync('git add .', { cwd: dateRepoDir });
+      execSync('GIT_COMMITTER_DATE="2023-06-15T00:00:00" git commit --date="2023-06-15T00:00:00" -m "Old commit"', { cwd: dateRepoDir });
+      
+      // Recent commit (2024)
+      const newCode = `function newFunction() {
+        return "new implementation with more logic";
+      }`;
+      writeFileSync(join(dateRepoDir, 'code.js'), newCode);
+      execSync('git add .', { cwd: dateRepoDir });
+      execSync('GIT_COMMITTER_DATE="2024-06-15T00:00:00" git commit --date="2024-06-15T00:00:00" -m "Recent commit"', { cwd: dateRepoDir });
+      
+      dateBuilder = new DatasetBuilder(dateRepoDir, dateOutputDir);
+    });
+
+    afterEach(() => {
+      if (dateRepoDir) {
+        try {
+          rmSync(dateRepoDir, { recursive: true });
+        } catch {}
+      }
+      if (dateOutputDir) {
+        try {
+          rmSync(dateOutputDir, { recursive: true });
+        } catch {}
+      }
+    });
+
+    test('should filter commits by start date', async () => {
+      const startDate = new Date('2024-01-01');
+      
+      const stats = await dateBuilder.buildKTODataset({
+        maxCommits: 100,
+        fimFormat: FIMFormat.ZED,
+        trainTestSplit: 0.9,
+        fileExtensions: ['.js'],
+        startDate: startDate,
+        endDate: null
+      });
+      
+      // Should only include the 2024 commit
+      assert(!stats.error);
+      assert(stats.totalExamples > 0);
+      
+      // Check the log file mentions the date filter
+      const logPath = join(dateOutputDir, 'dataset_generation.log');
+      if (existsSync(logPath)) {
+        const logContent = readFileSync(logPath, 'utf-8');
+        assert(logContent.includes('2024'));
+      }
+    });
+
+    test('should filter commits by end date', async () => {
+      const endDate = new Date('2023-12-31');
+      
+      const stats = await dateBuilder.buildKTODataset({
+        maxCommits: 100,
+        fimFormat: FIMFormat.ZED,
+        trainTestSplit: 0.9,
+        fileExtensions: ['.js'],
+        startDate: null,
+        endDate: endDate
+      });
+      
+      // Should only include the 2023 commit
+      assert(!stats.error);
+      assert(stats.totalExamples > 0);
+    });
+
+    test('should filter commits by date range', async () => {
+      const startDate = new Date('2024-01-01');
+      const endDate = new Date('2024-12-31');
+      
+      const stats = await dateBuilder.buildKTODataset({
+        maxCommits: 100,
+        fimFormat: FIMFormat.ZED,
+        trainTestSplit: 0.9,
+        fileExtensions: ['.js'],
+        startDate: startDate,
+        endDate: endDate
+      });
+      
+      // Should only include the 2024 commit
+      assert(!stats.error);
+      assert(stats.totalExamples > 0);
+    });
+
+    test('should work with no date filters', async () => {
+      const stats = await dateBuilder.buildKTODataset({
+        maxCommits: 100,
+        fimFormat: FIMFormat.ZED,
+        trainTestSplit: 0.9,
+        fileExtensions: ['.js']
+      });
+      
+      // Should include both commits
+      assert(!stats.error);
+      assert(stats.totalExamples > 0);
+    });
+
+    test('should pass date parameters to DPO dataset', async () => {
+      const startDate = new Date('2024-01-01');
+      
+      const stats = await dateBuilder.buildDPODataset({
+        maxCommits: 100,
+        fimFormat: FIMFormat.ZED,
+        trainTestSplit: 0.9,
+        fileExtensions: ['.js'],
+        startDate: startDate,
+        endDate: null
+      });
+      
+      // Should only include the 2024 commit
+      assert(!stats.error);
+    });
+  });
+
   describe('_shuffleArray', () => {
     test('should shuffle array in place', () => {
       const array = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

@@ -139,6 +139,50 @@ describe('GitHistoryMiner', () => {
         rmSync(emptyRepo, { recursive: true });
       }
     });
+
+    test('should filter commits by date range', async () => {
+      // Create a repo with commits at different dates
+      const dateRepo = mkdtempSync(join(tmpdir(), 'date-test-'));
+      try {
+        execSync('git init', { cwd: dateRepo });
+        execSync('git config user.email "test@example.com"', { cwd: dateRepo });
+        execSync('git config user.name "Test User"', { cwd: dateRepo });
+        
+        // Commit from 2023
+        writeFileSync(join(dateRepo, 'test.js'), 'function old() { return 1; }');
+        execSync('git add .', { cwd: dateRepo });
+        execSync('GIT_COMMITTER_DATE="2023-01-15T00:00:00" git commit --date="2023-01-15T00:00:00" -m "Old commit"', { cwd: dateRepo });
+        
+        // Commit from 2024
+        writeFileSync(join(dateRepo, 'test.js'), 'function new() { return 2; }');
+        execSync('git add .', { cwd: dateRepo });
+        execSync('GIT_COMMITTER_DATE="2024-06-15T00:00:00" git commit --date="2024-06-15T00:00:00" -m "New commit"', { cwd: dateRepo });
+        
+        const dateMiner = new GitHistoryMiner(dateRepo);
+        
+        // Test with date range that includes only 2024 commit
+        const startDate = new Date('2024-01-01');
+        const endDate = new Date('2024-12-31');
+        const filteredPairs = await dateMiner.extractEditPairs(['.js'], 100, startDate, endDate);
+        
+        assert.equal(filteredPairs.length, 1);
+        assert(filteredPairs[0].commitMessage.includes('New commit'));
+        
+        // Test with date range that includes only 2023 commit
+        const oldStartDate = new Date('2023-01-01');
+        const oldEndDate = new Date('2023-12-31');
+        const oldPairs = await dateMiner.extractEditPairs(['.js'], 100, oldStartDate, oldEndDate);
+        
+        assert.equal(oldPairs.length, 1);
+        assert(oldPairs[0].commitMessage.includes('Old commit'));
+        
+        // Test with no date filters - should get both
+        const allPairs = await dateMiner.extractEditPairs(['.js'], 100);
+        assert.equal(allPairs.length, 2);
+      } finally {
+        rmSync(dateRepo, { recursive: true });
+      }
+    });
   });
 
   describe('_detectLanguage', () => {
