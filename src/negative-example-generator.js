@@ -228,7 +228,7 @@ export class NegativeExampleGenerator {
 
     if (language === 'python') {
       replacements = [
-        ["'", '"'],
+        ['\'', '"'],
         ['str(', 'int('],
         ['int(', 'str('],
         ['.split()', '.strip()'],
@@ -239,7 +239,7 @@ export class NegativeExampleGenerator {
         ['toString()', 'toNumber()'],
         ['parseInt(', 'parseFloat('],
         ['[]', '{}'],
-        ["'", '`']
+        ['\'', '`']
       ];
     } else {
       replacements = [
