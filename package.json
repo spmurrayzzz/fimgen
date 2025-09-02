@@ -1,5 +1,5 @@
 {
-  "name": "fim-dataset-generator",
+  "name": "fimgen",
   "version": "1.0.0",
   "description": "Generate FIM (Fill-in-the-Middle) training datasets from git repositories",
   "type": "module",
