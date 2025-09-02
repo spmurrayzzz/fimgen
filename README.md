@@ -2,7 +2,9 @@
 
 A JavaScript library for generating FIM (Fill-in-the-Middle) training datasets from git repositories.
 
-This tool is mostly just me compiling all the random scripts scattered around my machine and attempting to unify the approaches in one place. The idea is simple:
+This tool is mostly just me compiling all the random scripts scattered around my machine and attempting to unify the approaches in one place.
+
+The idea is simple:
 
 - analyze commit history
 - extract meaningful code changes
@@ -181,12 +183,12 @@ MIT
 
 ## TODO
 
-[] Add more languages and file types
-[] Eval AST-based cursor positioning, not sure this actually works well as written
-[] Enhance quality filtering heuristics via embeddings or LLM-as-a-judge
-[] Optimize performance for large repositories, its not super fast right now
-[] Implement more synthetic degradation methods for negative examples, this likely will be LLM driven
-[] Add configuration file support for default options
-[] Improve documentation and examples
-[] Improve use as a library with better API design
-[] Add CI/CD for tests and linting
+- [ ] Add more languages and file types
+- [ ] Eval AST-based cursor positioning, not sure this actually works well as written
+- [ ] Enhance quality filtering heuristics via embeddings or LLM-as-a-judge
+- [ ] Optimize performance for large repositories, its not super fast right now
+- [ ] Implement more synthetic degradation methods for negative examples, this likely will be LLM driven
+- [ ] Add configuration file support for default options
+- [ ] Improve documentation and examples
+- [ ] Improve use as a library with better API design
+- [ ] Add CI/CD for tests and linting
