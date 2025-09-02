@@ -44,8 +44,15 @@ jobs:
       with:
         bun-version: latest
 
+    - name: Configure Git
+      run: |
+        git config --global user.email "ci@fimgen.lol"
+        git config --global user.name "fimgen CI Runner"
+
     - name: Install dependencies
       run: bun install
 
     - name: Run tests
       run: bun test
+      env:
+        TZ: UTC
