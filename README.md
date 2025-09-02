@@ -115,17 +115,6 @@ const stats = await builder.buildKTODataset({
 console.log(stats);
 ```
 
-## Architecture
-
-The library follows cognitive load principles with deep modules that provide powerful functionality through simple interfaces:
-
-- **GitHistoryMiner**: Extracts meaningful code changes from git history
-- **FIMTransformer**: Converts code into FIM training examples
-- **QualityFilter**: Ensures high-quality training data
-- **ASTProcessor**: Intelligent code analysis for cursor positioning
-- **NegativeExampleGenerator**: Creates realistic negative examples
-- **DatasetBuilder**: Orchestrates the entire dataset generation process
-
 ## Testing
 
 Run the comprehensive test suite:
