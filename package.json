@@ -1,12 +1,53 @@
 {
-  "name": "fimgen",
+  "name": "fim-dataset-generator",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Generate FIM (Fill-in-the-Middle) training datasets from git repositories",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "fimgen": "./src/index.js",
+    "fimview": "./src/viewer.js"
   },
-  "keywords": [],
+  "scripts": {
+    "start": "bun run src/index.js",
+    "viewer": "bun run src/viewer.js",
+    "test": "NODE_ENV=test bun test",
+    "test:node": "NODE_ENV=test node --test test/*.test.js",
+    "test:unit": "NODE_ENV=test bun test test/types.test.js test/quality-filter.test.js test/ast-processor.test.js test/negative-example-generator.test.js test/fim-transformer.test.js",
+    "test:integration": "NODE_ENV=test bun test test/integration.test.js",
+    "test:git": "NODE_ENV=test bun test test/git-history-miner.test.js test/dataset-builder.test.js",
+    "test:watch": "NODE_ENV=test bun test --watch",
+    "test:types": "NODE_ENV=test bun test test/types.test.js",
+    "test:quality": "NODE_ENV=test bun test test/quality-filter.test.js",
+    "test:ast": "NODE_ENV=test bun test test/ast-processor.test.js",
+    "test:negative": "NODE_ENV=test bun test test/negative-example-generator.test.js",
+    "test:transformer": "NODE_ENV=test bun test test/fim-transformer.test.js",
+    "test:miner": "NODE_ENV=test bun test test/git-history-miner.test.js",
+    "test:builder": "NODE_ENV=test bun test test/dataset-builder.test.js",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
+  },
+  "keywords": [
+    "fim",
+    "dataset",
+    "machine-learning",
+    "code-completion",
+    "git",
+    "training-data",
+    "kto",
+    "dpo"
+  ],
   "author": "",
-  "license": "ISC"
+  "license": "MIT",
+  "dependencies": {
+    "simple-git": "^3.22.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
+  }
 }
