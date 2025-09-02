@@ -1,0 +1,10 @@
+*.log
+.DS_Store
+node_modules/
+coverage/
+.vagrant
+scripts/unit-ingest/node_modules
+test/helpers/database.json
+.nyc_output
+package-lock.json
+.vscode
