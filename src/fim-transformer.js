@@ -1,5 +1,6 @@
 import { FIMExample, FIMFormat } from './types.js';
 import { ASTProcessor } from './ast-processor.js';
+import { StringRegionManager, RegionDescriptor } from './utils/string-region-manager.js';
 
 export class FIMTransformer {
   constructor() {
@@ -14,8 +15,8 @@ export class FIMTransformer {
 
     try {
       const cursorPositions = this.astProcessor.selectCursorPositions(
-        code, 
-        editPair.language, 
+        code,
+        editPair.language,
         numExamples
       );
 
@@ -53,106 +54,56 @@ export class FIMTransformer {
   _determineEditableRegion(code, cursorPos) {
     if (!code) return [0, 0];
 
-    cursorPos = Math.max(0, Math.min(cursorPos, code.length - 1));
+    const manager = new StringRegionManager(code);
 
-    const lines = code.split('\n');
-    if (!lines.length) return [0, code.length];
+    const safeCursorPos = manager.clampPosition(cursorPos);
 
-    let currentPos = 0;
-    let cursorLine = 0;
+    const boundaries = manager.findBlockBoundaries(safeCursorPos);
 
-    for (let i = 0; i < lines.length; i++) {
-      const lineEnd = currentPos + lines[i].length;
-      if (currentPos <= cursorPos && cursorPos <= lineEnd) {
-        cursorLine = i;
-        break;
-      }
-      currentPos = lineEnd + 1;
+    let startPos = boundaries.start;
+    let endPos = boundaries.end;
+
+    if (safeCursorPos < startPos) {
+      startPos = Math.max(0, safeCursorPos - 50);
     }
-
-    const startLine = this._findBlockStart(lines, cursorLine);
-    const endLine = this._findBlockEnd(lines, cursorLine);
-
-    let startPos = 0;
-    for (let i = 0; i < startLine; i++) {
-      startPos += lines[i].length + 1;
-    }
-
-    let endPos = startPos;
-    for (let i = startLine; i <= Math.min(endLine, lines.length - 1); i++) {
-      endPos += lines[i].length + 1;
-    }
-
-    startPos = Math.max(0, startPos);
-    endPos = Math.min(code.length, endPos);
-
-    if (cursorPos < startPos) {
-      startPos = Math.max(0, cursorPos - 50);
-    }
-    if (cursorPos > endPos) {
-      endPos = Math.min(code.length, cursorPos + 50);
+    if (safeCursorPos > endPos) {
+      endPos = Math.min(code.length, safeCursorPos + 50);
     }
 
     return [startPos, endPos];
   }
 
-  _findBlockStart(lines, currentLine) {
-    if (!lines.length || currentLine >= lines.length) return 0;
 
-    const currentIndent = lines[currentLine].length - lines[currentLine].trimStart().length;
-
-    for (let i = currentLine - 1; i >= 0; i--) {
-      if (lines[i].trim()) {
-        const lineIndent = lines[i].length - lines[i].trimStart().length;
-        if (lineIndent < currentIndent) {
-          return i + 1;
-        }
-      }
-    }
-
-    return 0;
-  }
-
-  _findBlockEnd(lines, currentLine) {
-    if (!lines.length || currentLine >= lines.length) return lines.length - 1;
-
-    const currentIndent = lines[currentLine].length - lines[currentLine].trimStart().length;
-
-    for (let i = currentLine + 1; i < lines.length; i++) {
-      if (lines[i].trim()) {
-        const lineIndent = lines[i].length - lines[i].trimStart().length;
-        if (lineIndent < currentIndent) {
-          return i - 1;
-        }
-      }
-    }
-
-    return lines.length - 1;
-  }
 
   _createZedFormatExample(code, cursorPos, editableRegion, editPair) {
     try {
+      const manager = new StringRegionManager(code);
       const [start, end] = editableRegion;
-      const validStart = Math.max(0, start);
-      const validEnd = Math.min(code.length, end);
-      const validCursorPos = Math.max(validStart, Math.min(cursorPos, validEnd));
 
-      const inputText = 
-        code.substring(0, validStart) +
-        '<|editable_region_start|>' +
-        code.substring(validStart, validCursorPos) +
-        '<|user_cursor_is_here|>';
+      const validStart = manager.clampPosition(start);
+      const validEnd = manager.clampPosition(end);
+      const validCursorPos = manager.clampPosition(
+        Math.max(validStart, Math.min(cursorPos, validEnd))
+      );
 
-      const completion = code.substring(validCursorPos, validEnd);
+      const inputText = manager.buildWithTokens([
+        RegionDescriptor.text(0, validStart),
+        RegionDescriptor.token('<|editable_region_start|>'),
+        RegionDescriptor.text(validStart, validCursorPos),
+        RegionDescriptor.token('<|user_cursor_is_here|>')
+      ]);
 
-      const context = 
-        code.substring(0, validStart) +
-        '<|editable_region_start|>' +
-        code.substring(validStart, validCursorPos) +
-        '<|user_cursor_is_here|>' +
-        code.substring(validCursorPos, validEnd) +
-        '<|editable_region_end|>' +
-        code.substring(validEnd);
+      const completion = manager.extractRegion(validCursorPos, validEnd);
+
+      const context = manager.buildWithTokens([
+        RegionDescriptor.text(0, validStart),
+        RegionDescriptor.token('<|editable_region_start|>'),
+        RegionDescriptor.text(validStart, validCursorPos),
+        RegionDescriptor.token('<|user_cursor_is_here|>'),
+        RegionDescriptor.text(validCursorPos, validEnd),
+        RegionDescriptor.token('<|editable_region_end|>'),
+        RegionDescriptor.text(validEnd, code.length)
+      ]);
 
       return new FIMExample({
         prompt: inputText,
@@ -169,28 +120,34 @@ export class FIMTransformer {
         }
       });
     } catch (error) {
-      // console.debug('Failed to create Zed format example:', error.message);
       return null;
     }
   }
 
   _createPSMFormatExample(code, cursorPos, editableRegion, editPair) {
     try {
-      const middleSize = Math.min(50, code.length - cursorPos);
-      const middleEnd = cursorPos + middleSize;
+      const manager = new StringRegionManager(code);
+      const validCursorPos = manager.clampPosition(cursorPos);
 
-      const prefix = code.substring(0, cursorPos);
-      const middle = code.substring(cursorPos, middleEnd);
-      const suffix = code.substring(middleEnd);
+      const middleSize = Math.min(50, code.length - validCursorPos);
+      const middleEnd = validCursorPos + middleSize;
 
-      const prompt = `<|fim_prefix|>${prefix}<|fim_suffix|>${suffix}<|fim_middle|>`;
+      const prompt = manager.buildWithTokens([
+        RegionDescriptor.token('<|fim_prefix|>'),
+        RegionDescriptor.text(0, validCursorPos),
+        RegionDescriptor.token('<|fim_suffix|>'),
+        RegionDescriptor.text(middleEnd, code.length),
+        RegionDescriptor.token('<|fim_middle|>')
+      ]);
+
+      const completion = manager.extractRegion(validCursorPos, middleEnd);
 
       return new FIMExample({
         prompt,
-        completion: middle,
+        completion,
         context: code,
         format: FIMFormat.PSM,
-        cursorPosition: cursorPos,
+        cursorPosition: validCursorPos,
         editableRegion,
         metadata: {
           filepath: editPair.filepath,
@@ -200,28 +157,34 @@ export class FIMTransformer {
         }
       });
     } catch (error) {
-      // console.debug('Failed to create PSM format example:', error.message);
       return null;
     }
   }
 
   _createSPMFormatExample(code, cursorPos, editableRegion, editPair) {
     try {
-      const middleSize = Math.min(50, code.length - cursorPos);
-      const middleEnd = cursorPos + middleSize;
+      const manager = new StringRegionManager(code);
+      const validCursorPos = manager.clampPosition(cursorPos);
 
-      const prefix = code.substring(0, cursorPos);
-      const middle = code.substring(cursorPos, middleEnd);
-      const suffix = code.substring(middleEnd);
+      const middleSize = Math.min(50, code.length - validCursorPos);
+      const middleEnd = validCursorPos + middleSize;
 
-      const prompt = `<|fim_suffix|>${suffix}<|fim_prefix|>${prefix}<|fim_middle|>`;
+      const prompt = manager.buildWithTokens([
+        RegionDescriptor.token('<|fim_suffix|>'),
+        RegionDescriptor.text(middleEnd, code.length),
+        RegionDescriptor.token('<|fim_prefix|>'),
+        RegionDescriptor.text(0, validCursorPos),
+        RegionDescriptor.token('<|fim_middle|>')
+      ]);
+
+      const completion = manager.extractRegion(validCursorPos, middleEnd);
 
       return new FIMExample({
         prompt,
-        completion: middle,
+        completion,
         context: code,
         format: FIMFormat.SPM,
-        cursorPosition: cursorPos,
+        cursorPosition: validCursorPos,
         editableRegion,
         metadata: {
           filepath: editPair.filepath,
@@ -231,7 +194,6 @@ export class FIMTransformer {
         }
       });
     } catch (error) {
-      // console.debug('Failed to create SPM format example:', error.message);
       return null;
     }
   }
