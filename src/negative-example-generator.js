@@ -19,7 +19,7 @@ export class NegativeExampleGenerator {
       const methods = Object.keys(this.degradationWeights);
       let degradedCompletion = null;
       let usedMethod = null;
-      
+
       for (const method of methods) {
         try {
           const degraded = this._applyDegradation(
@@ -27,7 +27,7 @@ export class NegativeExampleGenerator {
             method,
             example.metadata?.language || 'javascript'
           );
-          
+
           if (degraded && degraded !== example.completion) {
             degradedCompletion = degraded;
             usedMethod = method;
@@ -37,17 +37,29 @@ export class NegativeExampleGenerator {
           // console.debug('Failed with method', method, ':', error.message);
         }
       }
-      
+
       // If no method worked, force a simple degradation
+      // TODO: this likely will be redundant if we use LLM-drive synthetic negatives
       if (!degradedCompletion || degradedCompletion === example.completion) {
-        if (example.completion && example.completion.length > 5) {
-          // Simple truncation as fallback
-          degradedCompletion = example.completion.substring(0, Math.floor(example.completion.length * 0.7));
-          usedMethod = 'incomplete';
+        if (example.completion && example.completion.length > 0) {
+          // For very short completions, use different strategies
+          if (example.completion.length <= 5) {
+            // For very short completions, add garbage or remove entirely
+            if (example.completion.trim()) {
+              // Always use a non-empty degradation for non-empty completions
+              // This ensures deterministic behavior and avoids empty string issues
+              degradedCompletion = 'undefined';
+              usedMethod = 'corruption';
+            }
+          } else {
+            // Simple truncation as fallback for longer completions
+            degradedCompletion = example.completion.substring(0, Math.floor(example.completion.length * 0.7));
+            usedMethod = 'incomplete';
+          }
         }
       }
 
-      if (degradedCompletion && degradedCompletion !== example.completion) {
+      if (degradedCompletion !== undefined && degradedCompletion !== example.completion) {
         negativeExamples.push(new KTOExample({
           prompt: example.prompt,
           completion: degradedCompletion,
@@ -67,16 +79,16 @@ export class NegativeExampleGenerator {
     const methods = Object.keys(this.degradationWeights);
     const weights = Object.values(this.degradationWeights);
     const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-    
+
     let random = Math.random() * totalWeight;
-    
+
     for (let i = 0; i < methods.length; i++) {
       random -= weights[i];
       if (random <= 0) {
         return methods[i];
       }
     }
-    
+
     return methods[methods.length - 1];
   }
 
@@ -167,15 +179,15 @@ export class NegativeExampleGenerator {
 
     const matches = [...code.matchAll(pattern)];
     const variables = [...new Set(matches.map(m => m[1]))];
-    
+
     if (variables.length > 1) {
       const var1 = variables[Math.floor(Math.random() * variables.length)];
       let var2 = variables[Math.floor(Math.random() * variables.length)];
-      
+
       while (var2 === var1 && variables.length > 1) {
         var2 = variables[Math.floor(Math.random() * variables.length)];
       }
-      
+
       if (var1 !== var2) {
         const regex = new RegExp(`\\b${var1}\\b`);
         return code.replace(regex, var2);
@@ -187,21 +199,21 @@ export class NegativeExampleGenerator {
 
   _introduceOffByOne(code) {
     const patterns = [
-      { 
-        pattern: /<=/, 
-        replacement: '<' 
+      {
+        pattern: /<=/,
+        replacement: '<'
       },
-      { 
-        pattern: />=/, 
-        replacement: '>' 
+      {
+        pattern: />=/,
+        replacement: '>'
       },
-      { 
-        pattern: /\b(\d+)\b/, 
-        replacement: (match) => String(parseInt(match) + 1) 
+      {
+        pattern: /\b(\d+)\b/,
+        replacement: (match) => String(parseInt(match) + 1)
       },
-      { 
-        pattern: /range\((\d+)\)/, 
-        replacement: (_match, num) => `range(${parseInt(num) + 1})` 
+      {
+        pattern: /range\((\d+)\)/,
+        replacement: (_match, num) => `range(${parseInt(num) + 1})`
       }
     ];
 
