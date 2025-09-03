@@ -2,6 +2,18 @@ import { strict as assert } from 'node:assert';
 
 export { assert };
 
+export const ok = assert.ok;
+export const equal = assert.equal;
+export const deepEqual = assert.deepEqual;
+export const notEqual = assert.notEqual;
+export const notDeepEqual = assert.notDeepEqual;
+export const strictEqual = assert.strictEqual;
+export const notStrictEqual = assert.notStrictEqual;
+export const throws = assert.throws;
+export const doesNotThrow = assert.doesNotThrow;
+export const rejects = assert.rejects;
+export const doesNotReject = assert.doesNotReject;
+
 export function createMockEditPair(overrides = {}) {
   return {
     before: 'function old() { return 1; }',
@@ -86,7 +98,7 @@ main();`,
         }
         return total;
     }
-    
+
     public static void main(String[] args) {
         int[] numbers = {1, 2, 3, 4, 5};
         int result = calculateSum(numbers);
@@ -134,19 +146,19 @@ export const CONFIG = {
 export function assertThrows(fn, expectedError) {
   let thrown = false;
   let actualError;
-  
+
   try {
     fn();
   } catch (error) {
     thrown = true;
     actualError = error;
   }
-  
+
   assert(thrown, 'Expected function to throw');
-  
+
   if (expectedError) {
     if (typeof expectedError === 'string') {
-      assert(actualError.message.includes(expectedError), 
+      assert(actualError.message.includes(expectedError),
         `Expected error to include "${expectedError}", got "${actualError.message}"`);
     } else if (expectedError instanceof RegExp) {
       assert(expectedError.test(actualError.message),
@@ -158,19 +170,19 @@ export function assertThrows(fn, expectedError) {
 export async function assertAsyncThrows(fn, expectedError) {
   let thrown = false;
   let actualError;
-  
+
   try {
     await fn();
   } catch (error) {
     thrown = true;
     actualError = error;
   }
-  
+
   assert(thrown, 'Expected async function to throw');
-  
+
   if (expectedError) {
     if (typeof expectedError === 'string') {
-      assert(actualError.message.includes(expectedError), 
+      assert(actualError.message.includes(expectedError),
         `Expected error to include "${expectedError}", got "${actualError.message}"`);
     } else if (expectedError instanceof RegExp) {
       assert(expectedError.test(actualError.message),

@@ -38,7 +38,7 @@ export class FIMExample {
     metadata = {}
   }) {
     this.prompt = prompt;
-    this.completion = completion;
+    this.completion = completion || '';  // Ensure completion is never null/undefined
     this.context = context;
     this.format = format;
     this.cursorPosition = cursorPosition;
@@ -55,7 +55,7 @@ export class KTOExample {
     metadata = {}
   }) {
     this.prompt = prompt;
-    this.completion = completion;
+    this.completion = completion || '';  // Ensure completion is never null/undefined
     this.label = label;
     this.metadata = metadata;
   }

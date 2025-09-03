@@ -62,7 +62,7 @@ export class NegativeExampleGenerator {
       if (degradedCompletion !== undefined && degradedCompletion !== example.completion) {
         negativeExamples.push(new KTOExample({
           prompt: example.prompt,
-          completion: degradedCompletion,
+          completion: degradedCompletion || '',  // Ensure completion is never null
           label: false,
           metadata: {
             ...example.metadata,

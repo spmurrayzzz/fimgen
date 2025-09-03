@@ -79,7 +79,7 @@ export class DatasetBuilder {
 
       const positiveKTO = positiveFIMExamples.map(ex => new KTOExample({
         prompt: ex.prompt,
-        completion: ex.completion,
+        completion: ex.completion || '',  // Ensure completion is never null
         label: true,
         metadata: ex.metadata
       }));
@@ -217,7 +217,7 @@ export class DatasetBuilder {
         const jsonObj = example.constructor.name === 'KTOExample' 
           ? {
               prompt: example.prompt,
-              completion: example.completion,
+              completion: example.completion || '',
               label: example.label,
               metadata: example.metadata
             }
