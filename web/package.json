@@ -1,0 +1,28 @@
+{
+  "name": "fimgen-web",
+  "version": "1.0.0",
+  "description": "Web UI for fimgen",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"bun run start:server\" \"bun run dev:client\"",
+    "start:server": "bun run server/server.js",
+    "dev:client": "vite",
+    "build:client": "vite build",
+    "preview:client": "vite preview"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "solid-js": "^1.8.15",
+    "axios": "^1.6.7",
+    "@solidjs/router": "^0.15.4",
+    "prismjs": "^1.29.0",
+    "lucide-solid": "^0.344.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "vite": "^5.1.4",
+    "vite-plugin-solid": "^2.10.1"
+  }
+}

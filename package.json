@@ -11,6 +11,7 @@
   "scripts": {
     "start": "bun run src/index.js",
     "viewer": "bun run src/viewer.js",
+    "ui": "(cd web && bun run dev)",
     "test": "NODE_ENV=test bun test",
     "test:node": "NODE_ENV=test node --test test/*.test.js",
     "test:unit": "NODE_ENV=test bun test test/types.test.js test/quality-filter.test.js test/ast-processor.test.js test/negative-example-generator.test.js test/fim-transformer.test.js",
@@ -40,6 +41,12 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@solidjs/router": "^0.15.4",
+    "axios": "^1.13.2",
+    "lucide-react": "^0.554.0",
+    "lucide-solid": "^0.554.0",
+    "prismjs": "^1.30.0",
+    "react-router-dom": "^7.9.6",
     "simple-git": "^3.22.0",
     "winston": "^3.11.0"
   },

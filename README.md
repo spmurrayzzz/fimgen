@@ -2,6 +2,8 @@
 
 A JavaScript library for generating FIM (Fill-in-the-Middle) training datasets from git repositories.
 
+<img width="1896" height="929" alt="image" src="https://github.com/user-attachments/assets/670967ff-4837-4938-a3a6-7910c011cfd0" />
+
 This tool is mostly just me compiling all the random scripts scattered around my machine and attempting to unify the approaches in one place.
 
 The idea is simple:
@@ -66,7 +68,21 @@ bun run src/viewer.js -d dataset/
 # f/filter language python - Show only Python examples
 # stats - Show dataset statistics
 # q/quit - Exit
+# q/quit - Exit
 ```
+
+### Web UI
+
+A modern web interface is available for viewing, labeling, and editing datasets.
+
+```bash
+# Start the Web UI
+cd web
+bun install
+bun run dev
+```
+
+For full documentation, see [web/README.md](web/README.md).
 
 ### Command Line
 
@@ -188,4 +204,4 @@ MIT
 - [ ] Improve documentation and examples
 - [ ] Improve use as a library with better API design
 - [x] Add CI/CD for tests and linting
-- [ ] Improve dataset viewer, maybe a web UI? (god I hope not)
+- [x] Improve dataset viewer, maybe a web UI? (god I hope not) - *Update: I caved.*
